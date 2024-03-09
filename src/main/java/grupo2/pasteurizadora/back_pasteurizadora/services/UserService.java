@@ -1,14 +1,14 @@
-package ec.edu.utn.turismourcuqui.services;
+package grupo2.pasteurizadora.back_pasteurizadora.services;
 
-import ec.edu.utn.turismourcuqui.dto.Register;
-import ec.edu.utn.turismourcuqui.dto.UpdateUserDetails;
-import ec.edu.utn.turismourcuqui.exceptions.ClientException;
-import ec.edu.utn.turismourcuqui.models.User;
-import ec.edu.utn.turismourcuqui.repositories.UserRepository;
-import ec.edu.utn.turismourcuqui.security.Argon2CustomPasswordEncoder;
-import ec.edu.utn.turismourcuqui.security.jwt.JWT;
+import grupo2.pasteurizadora.back_pasteurizadora.dto.Register;
+import grupo2.pasteurizadora.back_pasteurizadora.entity.User;
+import grupo2.pasteurizadora.back_pasteurizadora.exception.ClientException;
+import grupo2.pasteurizadora.back_pasteurizadora.repository.UserRepository;
+import grupo2.pasteurizadora.back_pasteurizadora.security.Argon2CustomPasswordEncoder;
+import grupo2.pasteurizadora.back_pasteurizadora.security.jwt.JWT;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,32 +18,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@Validated
 @Log4j2
+@Validated
 public class UserService implements UserDetailsService {
 
     static final String[] ROLES = {"ADMIN", "USER"};
 
     private final UserRepository repository;
-    private final EmailSenderService emailSenderService;
     private final Argon2CustomPasswordEncoder encoder;
-    private final SessionAuditService sessionAuditService;
     private final JWT jwtutil;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    UserService(UserRepository repository, EmailSenderService emailSenderService, Argon2CustomPasswordEncoder encoder, SessionAuditService sessionAuditService, JWT jwtUtil) {
+    UserService(UserRepository repository, Argon2CustomPasswordEncoder encoder, JWT jwtUtil) {
         this.repository = repository;
-        this.emailSenderService = emailSenderService;
         this.encoder = encoder;
-        this.sessionAuditService = sessionAuditService;
         jwtutil = jwtUtil;
     }
 
@@ -52,65 +46,26 @@ public class UserService implements UserDetailsService {
         return repository
                 .findAll()
                 .stream()
-                .map(this::hidePasswordAndGallery)
-                .collect(Collectors.toList());
+                .map(this::hidePassword)
+                .toList();
     }
 
     public User find(Long id) {
         Optional<User> user = repository.findById(id);
         if (user.isPresent()) {
-            return hidePasswordAndGallery(user.get());
+            return hidePassword(user.get());
         }
         throw new ClientException("El usuario no existe");
     }
 
-    private User hidePasswordAndGallery(User user) {
+    private User hidePassword(User user) {
         entityManager.detach(user);
         user.setPassword(null);
-        for (var target : user.getTargets()) {
-            target.setGallery(null);
-        }
         return user;
     }
 
-    public void updateDetails(Long id, UpdateUserDetails detailsUser) {
 
-        var role = detailsUser.getRole();
-        var enabled = detailsUser.getEnabled();
-        var password = detailsUser.getPassword();
-
-        if (role == null && enabled == null && password == null) {
-            throw new ClientException("No se ha enviado ningún dato para actualizar");
-        }
-
-        log.info(detailsUser);
-        if (role != null && !Arrays.asList(ROLES).contains(role)) {
-            throw new ClientException("El rol que se trata de asignar no existe en el sistema");
-        }
-
-
-        var user = repository.findById(id).orElseThrow(() -> new ClientException("El usuario no existe"));
-
-        if (enabled != null) user.setEnabled(enabled);
-        if (role != null) user.setRole(role);
-        if (password != null && !password.isBlank()) user.setPassword(encoder.encode(password));
-
-
-        repository.save(user);
-
-        sessionAuditService.saveActionUser(user, "Actualización de usuario");
-        emailSenderService.sendSimpleMail(user.getEmail(), "ACTUALIZACIÓN DE DATOS", "Se han actualizado sus datos de usuario desde el sistema de administración de Turismo Urcuquí, si usted no ha solicitado esta acción, por favor contacte con el administrador del sistema. Sus datos de acceso son: \n" +
-                "Usuario: " + user.getUsername() + "\n" +
-                "Contraseña: " + (password != null && !password.isBlank() ? password : "No se ha actualizado") + "\n" +
-                "Rol: " + user.getRole() + "\n" +
-                "Estado: " + (user.isEnabled() ? "Habilitado" : "Deshabilitado") + "\n" +
-                "Cuenta no expirada: " + (user.isAccountNonExpired() ? "Si" : "No") + "\n" +
-                "Cuenta no bloqueada: " + (user.isAccountNonLocked() ? "Si" : "No") + "\n"
-        );
-    }
-
-
-    public String register(Register register) {
+    public String register(@Valid Register register) {
 
         if (repository.existsByUsername(register.getUsername())) {
             throw new ClientException("Nombre de usuario no disponible");
@@ -127,17 +82,13 @@ public class UserService implements UserDetailsService {
                 .lastname(register.getLastname())
                 .email(register.getEmail().trim())
                 .role("USER")
+                .enabled(true)
                 .build();
 
 
         var usersaved = repository.save(user);
 
-        var jwt = jwtutil.create(usersaved.getId().toString(), usersaved.getUsername());
-
-        sessionAuditService.saveActionUser(usersaved, "Registro de usuario");
-        emailSenderService.sendSimpleMail(register.getEmail(), "BIENVENIDO A TURISMO URCUQUÍ", "Gracias por registrarse en nuestra aplicacion de realidad aumentada, esperamos que disfrute de su experiencia");
-
-        return jwt;
+        return jwtutil.create(usersaved.getId().toString(), usersaved.getUsername());
     }
 
     public void update(Register register, User user) {
@@ -161,8 +112,6 @@ public class UserService implements UserDetailsService {
         user.setEmail(register.getEmail());
 
         repository.save(user);
-
-        sessionAuditService.saveActionUser(user, "Actualización de usuario");
     }
 
 

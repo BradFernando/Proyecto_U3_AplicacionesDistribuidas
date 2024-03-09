@@ -1,10 +1,11 @@
-package ec.edu.utn.turismourcuqui.repositories;
+package grupo2.pasteurizadora.back_pasteurizadora.repository;
 
-import ec.edu.utn.turismourcuqui.models.User;
+import grupo2.pasteurizadora.back_pasteurizadora.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

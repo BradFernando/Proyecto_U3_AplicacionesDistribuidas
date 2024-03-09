@@ -1,5 +1,6 @@
-package ec.edu.utn.turismourcuqui.security;
+package grupo2.pasteurizadora.back_pasteurizadora.security;
 
+import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,11 +9,10 @@ import org.springframework.stereotype.Component;
 /**
  * Implementación personalizada de PasswordEncoder que utiliza el algoritmo Argon2 para el hash y la verificación de contraseñas.
  */
+
+@Log4j2
 @Component
 public class Argon2CustomPasswordEncoder implements PasswordEncoder {
-
-    Logger logger = LoggerFactory.getLogger(Argon2CustomPasswordEncoder.class);
-
     /**
      * Codifica la contraseña en bruto utilizando el algoritmo Argon2.
      *
@@ -21,7 +21,7 @@ public class Argon2CustomPasswordEncoder implements PasswordEncoder {
      */
     @Override
     public String encode(CharSequence rawPassword) {
-        logger.info("Codificando contraseña");
+        log.info("Codificando contraseña");
         return Argon2Encoder.encode(rawPassword.toString());
     }
 
@@ -34,7 +34,7 @@ public class Argon2CustomPasswordEncoder implements PasswordEncoder {
      */
     @Override
     public boolean matches(CharSequence rawPassword, String encodedPassword) {
-        logger.info("Verificando contraseña");
+        log.info("Verificando contraseña");
         return Argon2Encoder.verify(encodedPassword, rawPassword.toString());
     }
 
@@ -47,7 +47,7 @@ public class Argon2CustomPasswordEncoder implements PasswordEncoder {
      */
     @Override
     public boolean upgradeEncoding(String encodedPassword) {
-        logger.info("Verificando si la contraseña necesita actualización");
+        log.info("Verificando si la contraseña necesita actualización");
         return PasswordEncoder.super.upgradeEncoding(encodedPassword);
     }
 }

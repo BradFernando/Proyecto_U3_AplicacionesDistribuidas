@@ -1,8 +1,7 @@
-package ec.edu.utn.turismourcuqui.security.jwt;
+package grupo2.pasteurizadora.back_pasteurizadora.security.jwt;
 
 import io.jsonwebtoken.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +14,7 @@ import java.util.function.Function;
 /**
  * Componente para la generación y validación de tokens JWT.
  */
+@Log4j2
 @Component
 public class JWT {
 
@@ -36,10 +36,6 @@ public class JWT {
     @Value("${security.jwt.ttlMillis}")
     private long ttlMillis;
 
-    /**
-     * Registro de eventos para la clase JWT.
-     */
-    private static final Logger logger = LoggerFactory.getLogger(JWT.class);
 
     /**
      * Crea un token JWT con el nombre de usuario y el correo electrónico proporcionados.
@@ -50,7 +46,7 @@ public class JWT {
      */
     public String create(String id, String subject) {
 
-        logger.info("Creating JWT for user id {} and subject {}", id, subject);
+        log.info("Creating JWT for user id {} and subject {}", id, subject);
 
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256; // Algoritmo de firma
 
@@ -84,7 +80,7 @@ public class JWT {
      * @return El nombre de usuario del token.
      */
     public String getID(String jwt) {
-        logger.debug("getting id from jwt '{}'", jwt);
+        log.debug("getting id from jwt '{}'", jwt);
         return getClaim(jwt, Claims::getId);
     }
 
@@ -95,7 +91,7 @@ public class JWT {
      * @return El correo electrónico del token.
      */
     public String getSubject(String jwt) {
-        logger.debug("getting subject from jwt '{}'", jwt);
+        log.debug("getting subject from jwt '{}'", jwt);
         return getClaim(jwt, Claims::getSubject);
     }
 

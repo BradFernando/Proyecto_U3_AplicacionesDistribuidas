@@ -1,28 +1,24 @@
-package ec.edu.utn.turismourcuqui.models;
+package grupo2.pasteurizadora.back_pasteurizadora.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import ec.edu.utn.turismourcuqui.utils.AuditEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "user")
-public class User extends AuditEntity implements UserDetails {
+@Entity(name = "my_user")
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +46,8 @@ public class User extends AuditEntity implements UserDetails {
     private String username;
 
     @Column(name = "password", nullable = false, length = 100)
+    @NotBlank(message = "El password es obligatorio")
+    @NotNull(message = "El password es obligatorio")
     private String password;
 
     @Column(name = "email", nullable = false, length = 100)
@@ -59,14 +57,7 @@ public class User extends AuditEntity implements UserDetails {
     private String email;
 
     @Column(name = "enabled", nullable = false)
-    private Boolean enabled;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<SessionAudit> sessionAudits;
-
-    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
-    private List<Target> targets;
+    private boolean enabled;
 
     public void hidePassword() {
         password = null;
@@ -95,13 +86,6 @@ public class User extends AuditEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
-    }
-
-
-    @Override
-    public void prePersist() {
-        super.prePersist();
-        enabled = true;
     }
 
 }

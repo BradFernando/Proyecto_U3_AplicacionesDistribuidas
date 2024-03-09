@@ -1,4 +1,4 @@
-package ec.edu.utn.turismourcuqui.dto;
+package grupo2.pasteurizadora.back_pasteurizadora.dto;
 
 import lombok.Data;
 

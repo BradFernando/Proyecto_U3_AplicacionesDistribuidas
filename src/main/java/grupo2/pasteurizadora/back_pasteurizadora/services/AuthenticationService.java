@@ -1,12 +1,12 @@
-package ec.edu.utn.turismourcuqui.services;
+package grupo2.pasteurizadora.back_pasteurizadora.services;
 
 
-import ec.edu.utn.turismourcuqui.dto.*;
-import ec.edu.utn.turismourcuqui.exceptions.ClientException;
-import ec.edu.utn.turismourcuqui.models.*;
-import ec.edu.utn.turismourcuqui.repositories.*;
-import ec.edu.utn.turismourcuqui.security.Argon2CustomPasswordEncoder;
-import ec.edu.utn.turismourcuqui.security.jwt.JWT;
+import grupo2.pasteurizadora.back_pasteurizadora.dto.Login;
+import grupo2.pasteurizadora.back_pasteurizadora.entity.User;
+import grupo2.pasteurizadora.back_pasteurizadora.repository.UserRepository;
+import grupo2.pasteurizadora.back_pasteurizadora.security.Argon2CustomPasswordEncoder;
+import grupo2.pasteurizadora.back_pasteurizadora.security.jwt.JWT;
+import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,37 +17,27 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Random;
 
+@Log4j2
 @Service
 @Transactional
 public class AuthenticationService {
 
     private final UserRepository userRepository;
-    private final TokenForgetPasswordRepository forgetPasswordRepository;
     private final AuthenticationManager authenticationManager;
-    private final EmailSenderService emailSenderService;
-    private final SessionAuditService sessionAuditService;
     private final Argon2CustomPasswordEncoder encoder;
     private final JWT jwtutil;
 
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
-
     @Autowired
-    public AuthenticationService(UserRepository userRepository, TokenForgetPasswordRepository forgetPasswordRepository, EmailSenderService emailSenderService, JWT jwt, AuthenticationManager authenticationManager, SessionAuditService sessionAuditService, Argon2CustomPasswordEncoder encoder) {
+    public AuthenticationService(UserRepository userRepository, JWT jwt, AuthenticationManager authenticationManager, Argon2CustomPasswordEncoder encoder) {
 
         this.userRepository = userRepository;
-        this.forgetPasswordRepository = forgetPasswordRepository;
-        this.emailSenderService = emailSenderService;
         this.jwtutil = jwt;
         this.authenticationManager = authenticationManager;
-        this.sessionAuditService = sessionAuditService;
         this.encoder = encoder;
-
-        this.forgetPasswordRepository.deleteExpiredToken();
 
 
         if (userRepository.existsByUsername("admin")) {
-            logger.info("Ya existe un usuario administrador en el sistema, omitiendo creación");
+            log.info("Ya existe un usuario administrador en el sistema, omitiendo creación");
             return;
         }
 
@@ -56,12 +46,12 @@ public class AuthenticationService {
                 .password(encoder.encode("Qwerty1598."))
                 .name("Administrador")
                 .lastname("Administrador")
-                .email("playerluis159@gmail.com")
+                .email("jhonfecrho@gmail.com")
                 .role("ADMIN")
+                .enabled(true)
                 .build();
 
-        logger.info("Creando usuario administrador, sus credenciales son: {} - {}", admin.getUsername(), admin.getPassword());
-        emailSenderService.sendSimpleMail(admin.getEmail(), "Se acaba de reiniciar el servidor", "Se acaba de reiniciar el servidor, sus credenciales del usuario administrador son: " + admin.getUsername() + " - " + admin.getPassword());
+        log.info("Creando usuario administrador, sus credenciales son: {} - {}", admin.getUsername(), admin.getPassword());
         userRepository.save(admin);
     }
 
@@ -69,69 +59,7 @@ public class AuthenticationService {
         var authenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(login.getUsername(), login.getPassword());
         var authentication = authenticationManager.authenticate(authenticationToken);
         var user = (User) authentication.getPrincipal();
-        var jwt = jwtutil.create(user.getId().toString(), user.getUsername());
-        sessionAuditService.saveActionUser(user, "Inicio de sesión");
-        return jwt;
-    }
-
-
-    public void forgotPassword(String email) {
-        var userOptional = userRepository.findByEmail(email);
-
-        if (userOptional.isEmpty()) {
-            return;
-        }
-
-        var token = generateCode();
-        saveTokenForgetPassword(email, token);
-        emailSenderService.sendSimpleMail(email, "RECUPERACIÓN DE CUENTA - TURISMO URCIQUÍ", "Su código de recuperación de contraseña es: " + token);
-        sessionAuditService.saveActionUser(userOptional.get(), "Solicitud de cambio de contraseña");
-    }
-
-
-    public void resetPassword(RecoveryPasswordData data) {
-
-        var tokenOptional = forgetPasswordRepository.findByToken(data.getToken());
-
-        if (tokenOptional.isEmpty()) {
-            throw new ClientException("El código de recuperación de contraseña no es válido");
-        }
-
-        var token = tokenOptional.get();
-
-        if (token.isExpired()) {
-            forgetPasswordRepository.delete(token);
-            throw new ClientException("El código de recuperación ha expirado, por favor solicite uno nuevo");
-        }
-
-        var userOptional = userRepository.findByEmail(token.getEmail());
-
-        if (userOptional.isEmpty()) {
-            throw new ClientException("No se pudo cambiar la contraseña, por favor intente nuevamente");
-        }
-
-        var user = userOptional.get();
-
-        user.setPassword(encoder.encode(data.getPassword()));
-        userRepository.save(user);
-        forgetPasswordRepository.delete(token);
-        sessionAuditService.saveActionUser(user, "Cambio de contraseña mediante código de recuperación");
-
-    }
-
-    private void saveTokenForgetPassword(String email, String token) {
-
-        var tokenForgetPassword = TokenForgetPassword.builder()
-                .email(email)
-                .token(token)
-                .build();
-
-        forgetPasswordRepository.save(tokenForgetPassword);
-    }
-
-
-    private static String generateCode() {
-        return String.format("%08d", new Random().nextInt(100000000));
+        return jwtutil.create(user.getId().toString(), user.getUsername());
     }
 
 }

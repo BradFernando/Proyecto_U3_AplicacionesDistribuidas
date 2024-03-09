@@ -1,9 +1,10 @@
-package ec.edu.utn.turismourcuqui.security.jwt;
+package grupo2.pasteurizadora.back_pasteurizadora.security.jwt;
 
 
-import ec.edu.utn.turismourcuqui.dto.ErrorResponse;
-import ec.edu.utn.turismourcuqui.security.UserDetailsAuthenticaction;
-import ec.edu.utn.turismourcuqui.services.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import grupo2.pasteurizadora.back_pasteurizadora.dto.ErrorResponse;
+import grupo2.pasteurizadora.back_pasteurizadora.security.UserDetailsAuthenticaction;
+import grupo2.pasteurizadora.back_pasteurizadora.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
@@ -13,7 +14,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,7 +55,7 @@ public class JWTOncePerRequestFilter extends OncePerRequestFilter {
      * @throws IOException      Si ocurre una excepción de E/S.
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         final String authenticationHeader = request.getHeader("Authorization");
 
@@ -93,7 +93,7 @@ public class JWTOncePerRequestFilter extends OncePerRequestFilter {
 
 
     private void writeError(Integer code, String message, HttpServletResponse response) throws IOException {
-        String json = ErrorResponse.jsonOf(message);
+        String json = new ObjectMapper().writeValueAsString(new ErrorResponse(message));
         log.info("Error de autenticación: {}", json);
         response.setStatus(code);
         response.getWriter().write(json);

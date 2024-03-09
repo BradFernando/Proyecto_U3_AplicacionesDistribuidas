@@ -1,12 +1,11 @@
-package ec.edu.utn.turismourcuqui.controllers;
+package grupo2.pasteurizadora.back_pasteurizadora.Rest;
 
 
-import ec.edu.utn.turismourcuqui.dto.Login;
-import ec.edu.utn.turismourcuqui.dto.RecoveryPasswordData;
-import ec.edu.utn.turismourcuqui.dto.Register;
-import ec.edu.utn.turismourcuqui.models.User;
-import ec.edu.utn.turismourcuqui.services.AuthenticationService;
-import ec.edu.utn.turismourcuqui.services.UserService;
+import grupo2.pasteurizadora.back_pasteurizadora.dto.Login;
+import grupo2.pasteurizadora.back_pasteurizadora.dto.Register;
+import grupo2.pasteurizadora.back_pasteurizadora.entity.User;
+import grupo2.pasteurizadora.back_pasteurizadora.services.AuthenticationService;
+import grupo2.pasteurizadora.back_pasteurizadora.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,7 +18,6 @@ import static org.springframework.http.HttpStatus.CREATED;
 /**
  * Controlador para la autenticación y gestión de usuarios.
  */
-@Validated
 @RestController
 public class AuthenticationController {
     private final AuthenticationService service;
@@ -50,7 +48,7 @@ public class AuthenticationController {
      * @return Una ResponseEntity que contiene el token JWT si el registro es exitoso, o un mensaje de error si ocurre algún problema.
      */
     @PostMapping(value = "/register")
-    public ResponseEntity<String> register(@Valid @RequestBody Register register) {
+    public ResponseEntity<String> register(@RequestBody Register register) {
         var jwt = userService.register(register);
         return ResponseEntity.status(CREATED).body(jwt);
     }
@@ -63,34 +61,10 @@ public class AuthenticationController {
      * @return Una ResponseEntity que contiene el mensaje "Actualizado" si la actualización es exitosa, o un mensaje de error si ocurre algún problema.
      */
     @PutMapping(value = "/update")
-    public ResponseEntity<String> update(@Valid @RequestBody Register register, @AuthenticationPrincipal User principals) {
+    public ResponseEntity<String> update(@RequestBody Register register, @AuthenticationPrincipal User principals) {
         userService.update(register, principals);
         return ResponseEntity.status(CREATED).body("Actualizado");
 
-    }
-
-
-    /**
-     * Elimina un usuario.
-     * @param email El email del usuario a eliminar.
-     * @return Una ResponseEntity que contiene el mensaje "Eliminado" si la eliminación es exitosa, o un mensaje de error si ocurre algún problema.
-     */
-    @PostMapping(value = "/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody String email) {
-        service.forgotPassword(email);
-        return ResponseEntity.status(CREATED).body("Hemos enviado un correo electrónico con el codigo de recuperación de cuenta");
-    }
-
-
-    /**
-     * Actualiza la contraseña de un usuario.
-     * @param data El objeto RecoveryPasswordData que contiene el email, la nueva contraseña y el token de recuperación.
-     * @return Una ResponseEntity que contiene el mensaje "Se ha actualizado su contraseña" si la actualización es exitosa, o un mensaje de error si ocurre algún problema.
-     */
-    @PostMapping(value = "/reset-password")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody RecoveryPasswordData data) {
-        service.resetPassword(data);
-        return ResponseEntity.status(CREATED).body("Se ha actualizado su contraseña");
     }
 
     /**

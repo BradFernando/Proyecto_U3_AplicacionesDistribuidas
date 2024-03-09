@@ -1,4 +1,4 @@
-package ec.edu.utn.turismourcuqui.security;
+package grupo2.pasteurizadora.back_pasteurizadora.security;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;

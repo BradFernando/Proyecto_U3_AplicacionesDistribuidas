@@ -1,7 +1,7 @@
-package ec.edu.utn.turismourcuqui.dto;
+package grupo2.pasteurizadora.back_pasteurizadora.dto;
 
 
-import ec.edu.utn.turismourcuqui.security.ValidPassword;
+import grupo2.pasteurizadora.back_pasteurizadora.validations.ValidPassword;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -27,6 +27,8 @@ public class Register {
     private String username;
 
     @ValidPassword
+    @NotNull(message = "El password es obligatorio")
+    @NotBlank(message = "El password es obligatorio")
     private String password;
 
     @Size(min = 3, max = 100, message = "El email debe tener entre 3 y 100 caracteres")
@@ -34,7 +36,5 @@ public class Register {
     @NotNull(message = "El email es obligatorio")
     @Email(message = "El email no es válido")
     private String email;
-
-
 }
 

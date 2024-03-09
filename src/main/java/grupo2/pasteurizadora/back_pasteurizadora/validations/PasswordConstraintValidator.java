@@ -1,4 +1,4 @@
-package ec.edu.utn.turismourcuqui.security;
+package grupo2.pasteurizadora.back_pasteurizadora.validations;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
