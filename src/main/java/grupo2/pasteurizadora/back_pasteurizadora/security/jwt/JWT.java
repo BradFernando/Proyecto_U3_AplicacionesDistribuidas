@@ -2,7 +2,6 @@ package grupo2.pasteurizadora.back_pasteurizadora.security.jwt;
 
 import io.jsonwebtoken.*;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -21,20 +20,17 @@ public class JWT {
     /**
      * Clave secreta utilizada para firmar los tokens JWT.
      */
-    @Value("${security.jwt.secret}")
-    private String key;
+    private static final String KEY = "grupo";
 
     /**
      * Emisor del token JWT.
      */
-    @Value("${security.jwt.issuer}")
-    private String issuer;
+    private static final String ISSUER = "espe";
 
     /**
      * Tiempo de vida (en milisegundos) del token JWT.
      */
-    @Value("${security.jwt.ttlMillis}")
-    private long ttlMillis;
+    private static final long TTL_MILLIS = 86400000;
 
 
     /**
@@ -53,7 +49,7 @@ public class JWT {
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
 
-        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(key); // Clave secreta en bytes
+        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(KEY); // Clave secreta en bytes
 
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName()); // Clave secreta para firmar el token
 
@@ -61,11 +57,11 @@ public class JWT {
                 .setId(id) // ID del token
                 .setIssuedAt(now) // Fecha de creación del token
                 .setSubject(subject) // Asunto del token
-                .setIssuer(issuer) // Emisor del token
+                .setIssuer(ISSUER) // Emisor del token
                 .signWith(signatureAlgorithm, signingKey);  // Firma del token
 
-        if (ttlMillis >= 0) {
-            long expMillis = nowMillis + ttlMillis;
+        if (TTL_MILLIS >= 0) {
+            long expMillis = nowMillis + TTL_MILLIS;
             Date exp = new Date(expMillis);
             builder.setExpiration(exp);
         }
@@ -117,7 +113,7 @@ public class JWT {
      */
     private Claims getAllClaims(String jwt) {
         return Jwts.parser()
-                .setSigningKey(DatatypeConverter.parseBase64Binary(key))
+                .setSigningKey(DatatypeConverter.parseBase64Binary(KEY))
                 .parseClaimsJws(jwt)
                 .getBody();
     }
