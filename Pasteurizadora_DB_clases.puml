@@ -1,0 +1,81 @@
+@startuml
+
+class ProcesoPasteurizacion {
+  -String codProcesoPastz
+  -String cantidadLitrosUsados
+  -float temperatura
+  -LocalTime tiempoTratamiento
+  -String tipoProcesamiento
+  -String detallesProceso
+  -List<RecepcionLeche> recepcionLeche
+  -ProcesoVerificacion procesoVerificacion
+}
+
+class ProcesoVerificacion {
+  -String codProcesoVerificacion
+  -boolean resultadoVerificacion
+  -LocalTime tiempoTratamiento
+  -String observaciones
+  -String detallesProceso
+  -ProcesoPasteurizacion procesoPasteurizacion
+  -List<LoteProductos> loteProductos
+}
+
+class LoteProductos {
+  -String codLote
+  -String nombreLote
+  -String tipoLote
+  -LocalDate fechadeProduccion
+  -LocalDate fechadeVencimiento
+  -String detallesLote
+  -int cantidadPaquetesTotales
+  -int cantidadPaquetesDisponibles
+  -ProcesoVerificacion procesoVerificacion
+}
+
+class HaciendaLechera {
+  -String codHacienda
+  -String nombreHacienda
+  -String ruc
+  -String direccion
+  -String telefonoEmpresa
+  -String responsable
+  -String email
+  -String telefonoContacto
+  -LocalDate fechaCompra
+  -String detallesSuministro
+  -RecepcionLeche recepcionLeche
+}
+
+class LecheroIndependiente {
+  -String codLechero
+  -String nombres
+  -String apellidos
+  -Integer cedula
+  -String direccion
+  -String email
+  -String contacto
+  -LocalDate fechaCompra
+  -String detallesSuministro
+  -RecepcionLeche recepcionLeche
+}
+
+
+class RecepcionLeche {
+  -String codRecepcion
+  -LocalDate fechaRecepcion
+  -String resultadosPruebasCalidad
+  -int cantidadLecheRecibida
+  -String pagoTotal
+  -List<HaciendaLechera> haciendaLechera
+  -List<LecheroIndependiente> lecheroIndependiente
+  -ProcesoPasteurizacion procesoPasteurizacion
+}
+
+ProcesoPasteurizacion "1" -- "1" ProcesoVerificacion : has
+ProcesoPasteurizacion "1" -- "*" RecepcionLeche : has
+ProcesoVerificacion "1" -- "*" LoteProductos : has
+RecepcionLeche "1" -- "*" HaciendaLechera : has
+RecepcionLeche "1" -- "*" LecheroIndependiente : has
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+:Milk_Processors: as Milk_Processors
+:Milk_Receivers: as Milk_Receivers
+Milk_Delivery as Milk_Delivery
+:Milk_Buyer: as Milk_Buyer
+:Milk_Seller: as Milk_Seller
+
+rectangle {
+    (Manage ProcesoPasteurizacion) as (ManagePast)
+    (Manage ProcesoVerificacion) as (ManageVerif)
+    (Manage LoteProductos) as (ManageLote)
+    (Manage HaciendaLechera) as (ManageHacienda)
+    (Manage LecheroIndependiente) as (ManageLechero)
+    (Manage RecepcionLeche) as (ManageRecep)
+    (Manage Clientes) as (ManageClientes)
+    (Manage Pedidos) as (ManagePedidos)
+}
+
+Milk_Processors -down-> (ManagePast)
+Milk_Processors -down-> (ManageVerif)
+
+Milk_Receivers -down-> (ManageHacienda)
+Milk_Receivers -down-> (ManageLechero)
+Milk_Receivers -down-> (ManageRecep)
+
+Milk_Delivery -down-> (ManageLote)
+
+Milk_Buyer -down-> (ManageClientes)
+Milk_Buyer -down-> (ManagePedidos)
+
+Milk_Seller -down-> (ManageHacienda)
+Milk_Seller -down-> (ManageLechero)
+
+note left of Milk_Processors :Se encargan de procesar la leche.
+note left of Milk_Receivers : Reciben la leche de las haciendas y lecheros independientes.
+note right of Milk_Delivery : Se encarga de la entrega de la leche a los repartidores.
+note right of Milk_Buyer : Compran la leche.
+note left of Milk_Seller : Venden la leche.
+
+@enduml
